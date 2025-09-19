@@ -1,18 +1,20 @@
 // تهيئة Firebase - باستخدام بيانات التهيئة التي قدمتها
+
 const firebaseConfig = {
-    apiKey: "AIzaSyC7z9hhq51EhsdsWfAQmFEYNgCeYqkiAQ8",
-    authDomain: "website-23082.firebaseapp.com",
-    databaseURL: "https://website-23082-default-rtdb.firebaseio.com",
-    projectId: "website-23082",
-    storageBucket: "website-23082.appspot.com",
-    messagingSenderId: "650852775693",
-    appId: "1:650852775693:web:22a7acd661478d10a1a244"
+  apiKey: "AIzaSyAzYZMxqNmnLMGYnCyiJYPg2MbxZMt0co0",
+  authDomain: "osama-91b95.firebaseapp.com",
+  databaseURL: "https://osama-91b95-default-rtdb.firebaseio.com",
+  projectId: "osama-91b95",
+  storageBucket: "osama-91b95.appspot.com",
+  messagingSenderId: "118875905722",
+  appId: "1:118875905722:web:200bff1bd99db2c1caac83",
+  measurementId: "G-LEM5PVPJZC"
 };
 
-// تهيئة Firebase
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const database = firebase.database();
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+
 
 // عناصر DOM
 const homePage = document.getElementById('home-page');
