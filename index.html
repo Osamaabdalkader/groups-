@@ -116,6 +116,15 @@
             color: #666;
         }
 
+        .error {
+            text-align: center;
+            padding: 20px;
+            color: #e74c3c;
+            background: #ffeaea;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
         .progress-bar {
             height: 20px;
             background: #f0f0f0;
@@ -146,6 +155,15 @@
             color: #888;
             text-align: left;
             direction: ltr;
+        }
+
+        .retry-button {
+            background: #e74c3c;
+            margin-top: 10px;
+        }
+
+        .retry-button:hover {
+            background: #c0392b;
         }
     </style>
     <!-- Firebase SDK -->
@@ -195,6 +213,10 @@
     </footer>
 
     <script>
+        // حالة التطبيق
+        let appInitialized = false;
+        let postsListener = null;
+
         // تهيئة Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyAzYZMxqNmnLMGYnCyiJYPg2MbxZMt0co0",
@@ -208,9 +230,18 @@
         };
 
         // Initialize Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-        const storage = firebase.storage();
+        let app, database, storage;
+
+        try {
+            app = firebase.initializeApp(firebaseConfig);
+            database = firebase.database();
+            storage = firebase.storage();
+            appInitialized = true;
+            console.log("تم تهيئة Firebase بنجاح");
+        } catch (error) {
+            console.error("خطأ في تهيئة Firebase:", error);
+            showError("حدث خطأ في تهيئة التطبيق. يرجى تحديث الصفحة.");
+        }
 
         // العناصر في واجهة المستخدم
         const postForm = document.getElementById('postForm');
@@ -238,6 +269,11 @@
         // إرسال النموذج
         postForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            if (!appInitialized) {
+                alert("التطبيق غير مهيأ. يرجى تحديث الصفحة والمحاولة مرة أخرى.");
+                return;
+            }
             
             const title = document.getElementById('title').value;
             const content = document.getElementById('content').value;
@@ -300,48 +336,79 @@
             }
         });
 
-        // قراءة وعرض المنشورات
-        database.ref('posts').orderByChild('timestamp').on('value', (snapshot) => {
-            postsList.innerHTML = ''; // مسح القائمة الحالية
-            
-            if (snapshot.exists()) {
-                const posts = [];
-                snapshot.forEach((childSnapshot) => {
-                    posts.push({
-                        id: childSnapshot.key,
-                        ...childSnapshot.val()
-                    });
-                });
-                
-                // عكس الترتيب لعرض أحدث المنشورات أولاً
-                posts.reverse().forEach((post) => {
-                    const postElement = document.createElement('div');
-                    postElement.classList.add('post');
-                    
-                    let imageHtml = '';
-                    if (post.imageUrl) {
-                        imageHtml = `<img src="${post.imageUrl}" alt="صورة المنشور" class="post-image">`;
-                    }
-                    
-                    const date = new Date(post.timestamp);
-                    const formattedDate = `${date.toLocaleDateString('ar-SA')} ${date.toLocaleTimeString('ar-SA')}`;
-                    
-                    postElement.innerHTML = `
-                        <h3>${post.title}</h3>
-                        <p>${post.content}</p>
-                        ${imageHtml}
-                        <div class="timestamp">نشر في: ${formattedDate}</div>
-                    `;
-                    postsList.appendChild(postElement);
-                });
-            } else {
-                postsList.innerHTML = '<div class="loading">لا توجد منشورات حتى الآن</div>';
+        // وظيفة لتحميل وعرض المنشورات
+        function loadPosts() {
+            if (!appInitialized) {
+                showError("التطبيق غير مهيأ. يرجى تحديث الصفحة.");
+                return;
             }
-        }, (error) => {
-            console.error('Error reading posts: ', error);
-            postsList.innerHTML = '<div class="loading">حدث خطأ في تحميل المنشورات</div>';
-        });
+            
+            // إزالة المستمع السابق إذا كان موجودًا
+            if (postsListener) {
+                database.ref('posts').off('value', postsListener);
+            }
+            
+            postsList.innerHTML = '<div class="loading">جاري تحميل المنشورات...</div>';
+            
+            // الاستماع للتغييرات في قاعدة البيانات
+            postsListener = database.ref('posts').orderByChild('timestamp').on('value', 
+                (snapshot) => {
+                    postsList.innerHTML = '';
+                    
+                    if (snapshot.exists()) {
+                        const posts = [];
+                        snapshot.forEach((childSnapshot) => {
+                            posts.push({
+                                id: childSnapshot.key,
+                                ...childSnapshot.val()
+                            });
+                        });
+                        
+                        // عكس الترتيب لعرض أحدث المنشورات أولاً
+                        posts.reverse().forEach((post) => {
+                            const postElement = document.createElement('div');
+                            postElement.classList.add('post');
+                            
+                            let imageHtml = '';
+                            if (post.imageUrl) {
+                                imageHtml = `<img src="${post.imageUrl}" alt="صورة المنشور" class="post-image" onerror="this.style.display='none'">`;
+                            }
+                            
+                            const date = new Date(post.timestamp);
+                            const formattedDate = `${date.toLocaleDateString('ar-SA')} ${date.toLocaleTimeString('ar-SA')}`;
+                            
+                            postElement.innerHTML = `
+                                <h3>${post.title}</h3>
+                                <p>${post.content}</p>
+                                ${imageHtml}
+                                <div class="timestamp">نشر في: ${formattedDate}</div>
+                            `;
+                            postsList.appendChild(postElement);
+                        });
+                    } else {
+                        postsList.innerHTML = '<div class="loading">لا توجد منشورات حتى الآن</div>';
+                    }
+                }, 
+                (error) => {
+                    console.error('Error reading posts: ', error);
+                    showError('حدث خطأ في تحميل المنشورات. <button class="retry-button" onclick="loadPosts()">إعادة المحاولة</button>');
+                }
+            );
+        }
+
+        // وظيفة لعرض الخطأ
+        function showError(message) {
+            postsList.innerHTML = `<div class="error">${message}</div>`;
+        }
+
+        // بدء تحميل المنشورات عند تحميل الصفحة
+        if (appInitialized) {
+            loadPosts();
+        }
+
+        // جعل الدوال متاحة عالمياً لإعادة المحاولة
+        window.loadPosts = loadPosts;
+        window.showError = showError;
     </script>
 </body>
-            </html>
-            
+                    </html>
