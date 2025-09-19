@@ -1,24 +1,18 @@
-// Import the functions you need from the Firebase SDKs
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
-import { getDatabase, ref, set, push, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-database.js";
-
-// Firebase configuration
+// تهيئة Firebase - باستخدام بيانات التهيئة التي قدمتها
 const firebaseConfig = {
-    apiKey: "AIzaSyAzYZMxqNmnLMGYnCyiJYPg2MbxZMt0co0",
-    authDomain: "osama-91b95.firebaseapp.com",
-    databaseURL: "https://osama-91b95-default-rtdb.firebaseio.com",
-    projectId: "osama-91b95",
-    storageBucket: "osama-91b95.appspot.com",
-    messagingSenderId: "118875905722",
-    appId: "1:118875905722:web:1a04946bc739c14acaac83",
-    measurementId: "G-48WBMZBZ43"
+    apiKey: "AIzaSyC7z9hhq51EhsdsWfAQmFEYNgCeYqkiAQ8",
+    authDomain: "website-23082.firebaseapp.com",
+    databaseURL: "https://website-23082-default-rtdb.firebaseio.com",
+    projectId: "website-23082",
+    storageBucket: "website-23082.appspot.com",
+    messagingSenderId: "650852775693",
+    appId: "1:650852775693:web:22a7acd661478d10a1a244"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const database = getDatabase(app);
+// تهيئة Firebase
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const database = firebase.database();
 
 // عناصر DOM
 const homePage = document.getElementById('home-page');
@@ -48,14 +42,13 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // استمع لتغير حالة المستخدم
-onAuthStateChanged(auth, user => {
+auth.onAuthStateChanged(user => {
     // لا شيء خاص هنا لأن المنشورات تظهر للجميع
 });
 
 // تحميل المنشورات للجميع
 function loadPosts() {
-    const postsRef = ref(database, 'posts');
-    onValue(postsRef, snapshot => {
+    database.ref('posts').on('value', snapshot => {
         postsContainer.innerHTML = '';
         
         if (snapshot.exists()) {
@@ -108,7 +101,7 @@ loginBtn.addEventListener('click', e => {
         return;
     }
     
-    signInWithEmailAndPassword(auth, email, password)
+    auth.signInWithEmailAndPassword(email, password)
         .then(() => {
             showAuthMessage('تم تسجيل الدخول بنجاح!', 'success');
             setTimeout(() => {
@@ -136,12 +129,12 @@ signupBtn.addEventListener('click', e => {
         return;
     }
     
-    createUserWithEmailAndPassword(auth, email, password)
+    auth.createUserWithEmailAndPassword(email, password)
         .then(userCredential => {
             const user = userCredential.user;
             
             // حفظ معلومات المستخدم الإضافية
-            return set(ref(database, 'users/' + user.uid), {
+            return database.ref('users/' + user.uid).set({
                 name: name,
                 phone: phone,
                 email: email,
@@ -162,7 +155,7 @@ signupBtn.addEventListener('click', e => {
 
 // تسجيل الخروج
 logoutBtn.addEventListener('click', () => {
-    signOut(auth).then(() => {
+    auth.signOut().then(() => {
         showPage(homePage);
     });
 });
@@ -189,35 +182,34 @@ publishBtn.addEventListener('click', e => {
     }
     
     // الحصول على معلومات المستخدم الإضافية
-    const userRef = ref(database, 'users/' + user.uid);
-    onValue(userRef, snapshot => {
-        const userData = snapshot.val();
-        
-        const postData = {
-            title: title,
-            description: description,
-            price: price || '',
-            location: location,
-            phone: phone,
-            authorId: user.uid,
-            authorName: userData.name,
-            authorPhone: userData.phone,
-            timestamp: serverTimestamp()
-        };
-        
-        // حفظ المنشور في قاعدة البيانات
-        const newPostRef = push(ref(database, 'posts'));
-        set(newPostRef, postData)
-            .then(() => {
-                alert('تم نشر المنشور بنجاح!');
-                resetAddPostForm();
-                showPage(homePage);
-            })
-            .catch(error => {
-                console.error('Error adding post: ', error);
-                alert('حدث خطأ أثناء نشر المنشور. يرجى المحاولة مرة أخرى.');
-            });
-    }, { onlyOnce: true });
+    database.ref('users/' + user.uid).once('value')
+        .then(snapshot => {
+            const userData = snapshot.val();
+            
+            const postData = {
+                title: title,
+                description: description,
+                price: price || '',
+                location: location,
+                phone: phone,
+                authorId: user.uid,
+                authorName: userData.name,
+                authorPhone: userData.phone,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            };
+            
+            // حفظ المنشور في قاعدة البيانات
+            return database.ref('posts').push(postData);
+        })
+        .then(() => {
+            alert('تم نشر المنشور بنجاح!');
+            resetAddPostForm();
+            showPage(homePage);
+        })
+        .catch(error => {
+            console.error('Error adding post: ', error);
+            alert('حدث خطأ أثناء نشر المنشور. يرجى المحاولة مرة أخرى.');
+        });
 });
 
 // عرض معلومات المستخدم
@@ -226,29 +218,29 @@ profileIcon.addEventListener('click', () => {
     
     if (user) {
         // عرض صفحة حساب المستخدم
-        const userRef = ref(database, 'users/' + user.uid);
-        onValue(userRef, snapshot => {
-            const userData = snapshot.val();
-            userInfo.innerHTML = `
-                <div class="user-detail">
-                    <i class="fas fa-user"></i>
-                    <span>${userData.name}</span>
-                </div>
-                <div class="user-detail">
-                    <i class="fas fa-envelope"></i>
-                    <span>${userData.email}</span>
-                </div>
-                <div class="user-detail">
-                    <i class="fas fa-phone"></i>
-                    <span>${userData.phone}</span>
-                </div>
-                <div class="user-detail">
-                    <i class="fas fa-map-marker-alt"></i>
-                    <span>${userData.address}</span>
-                </div>
-            `;
-            showPage(profilePage);
-        }, { onlyOnce: true });
+        database.ref('users/' + user.uid).once('value')
+            .then(snapshot => {
+                const userData = snapshot.val();
+                userInfo.innerHTML = `
+                    <div class="user-detail">
+                        <i class="fas fa-user"></i>
+                        <span>${userData.name}</span>
+                    </div>
+                    <div class="user-detail">
+                        <i class="fas fa-envelope"></i>
+                        <span>${userData.email}</span>
+                    </div>
+                    <div class="user-detail">
+                        <i class="fas fa-phone"></i>
+                        <span>${userData.phone}</span>
+                    </div>
+                    <div class="user-detail">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>${userData.address}</span>
+                    </div>
+                `;
+                showPage(profilePage);
+            });
     } else {
         // عرض صفحة التوثيق
         showPage(authPage);
@@ -342,4 +334,4 @@ function resetAuthForms() {
     document.getElementById('signup-address').value = '';
     authMessage.textContent = '';
     authMessage.className = '';
-        }
+                       }
