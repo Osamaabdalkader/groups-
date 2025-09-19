@@ -318,4 +318,4 @@ function resetAuthForms() {
     document.getElementById('signup-address').value = '';
     authMessage.textContent = '';
     authMessage.className = '';
-}
+        }
