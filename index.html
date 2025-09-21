@@ -117,6 +117,26 @@
             margin-bottom: 10px;
         }
         
+        .post-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .post-detail {
+            background-color: #f0f0f0;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        
+        .post-price {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            font-weight: bold;
+        }
+        
         .form-group {
             margin-bottom: 20px;
         }
@@ -127,7 +147,7 @@
             font-weight: bold;
         }
         
-        input, textarea {
+        input, textarea, select {
             width: 100%;
             padding: 10px;
             border: 1px solid #ddd;
@@ -245,12 +265,50 @@
             <div id="upload-status" class="upload-status"></div>
             <form id="publish-form">
                 <div class="form-group">
-                    <label for="title">العنوان:</label>
-                    <input type="text" id="title" required>
+                    <label for="name">الاسم:</label>
+                    <input type="text" id="name" required>
                 </div>
                 <div class="form-group">
                     <label for="description">الوصف:</label>
                     <textarea id="description" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="location">الموقع:</label>
+                    <select id="location" required>
+                        <option value="">اختر الموقع</option>
+                        <option value="صنعاء">صنعاء</option>
+                        <option value="عدن">عدن</option>
+                        <option value="تعز">تعز</option>
+                        <option value="مارب">مارب</option>
+                        <option value="حضرموت">حضرموت</option>
+                        <option value="الحديدة">الحديدة</option>
+                        <option value="إب">إب</option>
+                        <option value="ذمار">ذمار</option>
+                        <option value="المكلا">المكلا</option>
+                        <option value="عمران">عمران</option>
+                        <option value="الضالع">الضالع</option>
+                        <option value="لحج">لحج</option>
+                        <option value="أخرى">أخرى</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="category">النوع:</label>
+                    <select id="category" required>
+                        <option value="">اختر النوع</option>
+                        <option value="أدوية">أدوية</option>
+                        <option value="أثاث">أثاث</option>
+                        <option value="ملابس">ملابس</option>
+                        <option value="عقارات">عقارات</option>
+                        <option value="إلكترونيات">إلكترونيات</option>
+                        <option value="سيارات">سيارات</option>
+                        <option value="أغذية">أغذية</option>
+                        <option value="خدمات">خدمات</option>
+                        <option value="أخرى">أخرى</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="price">السعر (ريال يمني):</label>
+                    <input type="number" id="price" min="0" required>
                 </div>
                 <div class="form-group">
                     <label for="image">صورة (اختياري):</label>
@@ -317,8 +375,11 @@
             document.getElementById('publish-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
-                const title = document.getElementById('title').value;
+                const name = document.getElementById('name').value;
                 const description = document.getElementById('description').value;
+                const location = document.getElementById('location').value;
+                const category = document.getElementById('category').value;
+                const price = document.getElementById('price').value;
                 const imageFile = document.getElementById('image').files[0];
                 
                 let imageUrl = null;
@@ -343,10 +404,10 @@
                         }
                     }
                     
-                    if (title && description) {
+                    if (name && description && location && category && price) {
                         showStatus('جاري نشر المنشور...', 'success');
                         
-                        const success = await addPost(title, description, imageUrl);
+                        const success = await addPost(name, description, location, category, price, imageUrl);
                         
                         if (success) {
                             // إعادة تعيين النموذج
@@ -364,6 +425,8 @@
                         } else {
                             showStatus('فشل في نشر المنشور', 'error');
                         }
+                    } else {
+                        showStatus('يرجى ملء جميع الحقول المطلوبة', 'error');
                     }
                 } catch (error) {
                     console.error('Error:', error);
@@ -429,13 +492,21 @@
                 
                 // إضافة صورة إذا كانت موجودة
                 const imageHtml = post.image_url 
-                    ? `<img src="${post.image_url}" alt="${post.title}" class="post-image">`
+                    ? `<img src="${post.image_url}" alt="${post.name}" class="post-image">`
                     : `<div class="post-image no-image">لا توجد صورة</div>`;
+                
+                // تنسيق السعر
+                const formattedPrice = new Intl.NumberFormat('ar-YE').format(post.price) + " ريال يمني";
                 
                 postElement.innerHTML = `
                     ${imageHtml}
-                    <h3 class="post-title">${post.title}</h3>
+                    <h3 class="post-title">${post.name}</h3>
                     <p class="post-description">${post.description}</p>
+                    <div class="post-details">
+                        <span class="post-detail post-price">${formattedPrice}</span>
+                        <span class="post-detail">${post.category}</span>
+                        <span class="post-detail">${post.location}</span>
+                    </div>
                     <small>${new Date(post.created_at).toLocaleString('ar-SA')}</small>
                 `;
                 postsContainer.appendChild(postElement);
@@ -481,13 +552,16 @@
         }
         
         // إضافة منشور جديد إلى Supabase
-        async function addPost(title, description, imageUrl) {
+        async function addPost(name, description, location, category, price, imageUrl) {
             try {
                 const { data, error } = await supabase
                     .from('marketing')
                     .insert([{ 
-                        title, 
+                        name,
                         description, 
+                        location,
+                        category,
+                        price,
                         image_url: imageUrl 
                     }]);
                 
