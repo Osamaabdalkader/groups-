@@ -95,6 +95,7 @@
 
         .auth-buttons {
             display: flex;
+            align-items: center;
         }
 
         .btn {
@@ -130,6 +131,11 @@
 
         .btn-outline:hover {
             background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .user-welcome {
+            color: white;
+            margin-right: 10px;
         }
 
         .hero {
@@ -261,6 +267,8 @@
             width: 90%;
             max-width: 500px;
             box-shadow: var(--box-shadow);
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .modal-header {
@@ -344,6 +352,47 @@
             border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
 
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--dark-color);
+        }
+
+        .loading i {
+            animation: spin 1s linear infinite;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 12px 15px;
+            border-radius: var(--border-radius);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert i {
+            margin-left: 10px;
+        }
+
         @media (max-width: 768px) {
             .header-content {
                 flex-direction: column;
@@ -351,6 +400,12 @@
             
             nav ul {
                 margin: 1rem 0;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            nav ul li {
+                margin: 5px;
             }
             
             .auth-buttons {
@@ -363,6 +418,10 @@
             
             .hero p {
                 font-size: 1rem;
+            }
+            
+            .footer-content {
+                flex-direction: column;
             }
         }
     </style>
@@ -387,7 +446,7 @@
                         <li><a href="#" id="add-post-link"><i class="fas fa-plus"></i> إضافة منشور</a></li>
                     </ul>
                 </nav>
-                <div class="auth-buttons">
+                <div class="auth-buttons" id="auth-buttons">
                     <button class="btn btn-primary" id="login-btn"><i class="fas fa-sign-in-alt"></i> تسجيل الدخول</button>
                     <button class="btn btn-outline" id="signup-btn"><i class="fas fa-user-plus"></i> إنشاء حساب</button>
                 </div>
@@ -409,7 +468,10 @@
         <div class="container">
             <h2 class="section-title">أحدث المنتجات</h2>
             <div class="posts-grid" id="posts-container">
-                <!-- سيتم ملء هذا القسم بالمنشورات من قاعدة البيانات -->
+                <div class="loading">
+                    <i class="fas fa-spinner"></i>
+                    <p>جاري تحميل المنتجات...</p>
+                </div>
             </div>
         </div>
     </section>
@@ -448,6 +510,7 @@
                 <h2>تسجيل الدخول</h2>
                 <span class="close">&times;</span>
             </div>
+            <div id="login-alert"></div>
             <form id="login-form">
                 <div class="form-group">
                     <label for="login-email">البريد الإلكتروني</label>
@@ -457,7 +520,9 @@
                     <label for="login-password">كلمة المرور</label>
                     <input type="password" id="login-password" class="form-control" required>
                 </div>
-                <button type="submit" class="btn btn-primary btn-block">تسجيل الدخول</button>
+                <button type="submit" class="btn btn-primary btn-block" id="login-submit">
+                    <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
+                </button>
             </form>
             <p style="text-align: center; margin-top: 1rem;">
                 ليس لديك حساب؟ <a href="#" id="go-to-signup">إنشاء حساب</a>
@@ -472,6 +537,7 @@
                 <h2>إنشاء حساب جديد</h2>
                 <span class="close">&times;</span>
             </div>
+            <div id="signup-alert"></div>
             <form id="signup-form">
                 <div class="form-group">
                     <label for="signup-name">الاسم الكامل</label>
@@ -490,10 +556,12 @@
                     <input type="email" id="signup-email" class="form-control" required>
                 </div>
                 <div class="form-group">
-                    <label for="signup-password">كلمة المرور</label>
-                    <input type="password" id="signup-password" class="form-control" required>
+                    <label for="signup-password">كلمة المرور (6 أحرف على الأقل)</label>
+                    <input type="password" id="signup-password" class="form-control" minlength="6" required>
                 </div>
-                <button type="submit" class="btn btn-primary btn-block">إنشاء حساب</button>
+                <button type="submit" class="btn btn-primary btn-block" id="signup-submit">
+                    <i class="fas fa-user-plus"></i> إنشاء حساب
+                </button>
             </form>
             <p style="text-align: center; margin-top: 1rem;">
                 لديك حساب بالفعل؟ <a href="#" id="go-to-login">تسجيل الدخول</a>
@@ -508,6 +576,7 @@
                 <h2>إضافة منشور جديد</h2>
                 <span class="close">&times;</span>
             </div>
+            <div id="add-post-alert"></div>
             <form id="add-post-form">
                 <div class="form-group">
                     <label for="post-title">اسم المنتج</label>
@@ -538,9 +607,12 @@
                 </div>
                 <div class="form-group">
                     <label for="post-image">صورة المنتج (رابط URL)</label>
-                    <input type="url" id="post-image" class="form-control" required>
+                    <input type="url" id="post-image" class="form-control" required 
+                           placeholder="https://example.com/image.jpg">
                 </div>
-                <button type="submit" class="btn btn-primary btn-block">نشر المنتج</button>
+                <button type="submit" class="btn btn-primary btn-block" id="add-post-submit">
+                    <i class="fas fa-plus"></i> نشر المنتج
+                </button>
             </form>
         </div>
     </div>
@@ -566,6 +638,9 @@
         
         const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         
+        // حالة المستخدم
+        let currentUser = null;
+        
         // عناصر DOM
         const loginBtn = document.getElementById('login-btn');
         const signupBtn = document.getElementById('signup-btn');
@@ -583,9 +658,10 @@
         const profileLink = document.getElementById('profile-link');
         const closeDevModal = document.getElementById('close-dev-modal');
         const postsContainer = document.getElementById('posts-container');
-        
-        // حالة المستخدم
-        let currentUser = null;
+        const authButtons = document.getElementById('auth-buttons');
+        const loginAlert = document.getElementById('login-alert');
+        const signupAlert = document.getElementById('signup-alert');
+        const addPostAlert = document.getElementById('add-post-alert');
         
         // فتح وإغلاق النوافذ
         loginBtn.addEventListener('click', () => loginModal.style.display = 'flex');
@@ -619,7 +695,7 @@
         // إدارة النقر على الروابط
         const navLinks = document.querySelectorAll('nav a');
         navLinks.forEach(link => {
-            if (link.id !== 'add-post-link') {
+            if (link.id !== 'add-post-link' && link.id !== 'profile-link') {
                 link.addEventListener('click', (e) => {
                     e.preventDefault();
                     if (!currentUser) {
@@ -640,11 +716,25 @@
             }
         });
         
+        profileLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (!currentUser) {
+                loginModal.style.display = 'flex';
+            } else {
+                devModal.style.display = 'flex';
+            }
+        });
+        
         // تسجيل الدخول
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
+            const submitBtn = document.getElementById('login-submit');
+            
+            // إظهار حالة التحميل
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري تسجيل الدخول...';
+            submitBtn.disabled = true;
             
             const { data, error } = await supabase.auth.signInWithPassword({
                 email,
@@ -652,13 +742,19 @@
             });
             
             if (error) {
-                alert('خطأ في تسجيل الدخول: ' + error.message);
+                showAlert(loginAlert, 'error', 'خطأ في تسجيل الدخول: ' + error.message);
             } else {
                 currentUser = data.user;
-                alert('تم تسجيل الدخول بنجاح!');
-                loginModal.style.display = 'none';
-                updateUI();
+                showAlert(loginAlert, 'success', 'تم تسجيل الدخول بنجاح!');
+                setTimeout(() => {
+                    loginModal.style.display = 'none';
+                    updateUI();
+                }, 1500);
             }
+            
+            // إعادة تعيين زر الإرسال
+            submitBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> تسجيل الدخول';
+            submitBtn.disabled = false;
         });
         
         // إنشاء حساب
@@ -669,6 +765,11 @@
             const phone = document.getElementById('signup-phone').value;
             const email = document.getElementById('signup-email').value;
             const password = document.getElementById('signup-password').value;
+            const submitBtn = document.getElementById('signup-submit');
+            
+            // إظهار حالة التحميل
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري إنشاء الحساب...';
+            submitBtn.disabled = true;
             
             const { data, error } = await supabase.auth.signUp({
                 email,
@@ -683,11 +784,18 @@
             });
             
             if (error) {
-                alert('خطأ في إنشاء الحساب: ' + error.message);
+                showAlert(signupAlert, 'error', 'خطأ في إنشاء الحساب: ' + error.message);
             } else {
-                alert('تم إنشاء الحساب بنجاح! يرجى التحقق من بريدك الإلكتروني للتأكيد.');
-                signupModal.style.display = 'none';
+                showAlert(signupAlert, 'success', 'تم إنشاء الحساب بنجاح! يرجى التحقق من بريدك الإلكتروني للتأكيد.');
+                setTimeout(() => {
+                    signupModal.style.display = 'none';
+                    signupForm.reset();
+                }, 2000);
             }
+            
+            // إعادة تعيين زر الإرسال
+            submitBtn.innerHTML = '<i class="fas fa-user-plus"></i> إنشاء حساب';
+            submitBtn.disabled = false;
         });
         
         // إضافة منشور جديد
@@ -695,7 +803,7 @@
             e.preventDefault();
             
             if (!currentUser) {
-                alert('يجب تسجيل الدخول أولاً');
+                showAlert(addPostAlert, 'error', 'يجب تسجيل الدخول أولاً');
                 return;
             }
             
@@ -705,6 +813,11 @@
             const price = document.getElementById('post-price').value;
             const category = document.getElementById('post-category').value;
             const image_url = document.getElementById('post-image').value;
+            const submitBtn = document.getElementById('add-post-submit');
+            
+            // إظهار حالة التحميل
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري النشر...';
+            submitBtn.disabled = true;
             
             const { data, error } = await supabase
                 .from('posts')
@@ -722,17 +835,30 @@
                 ]);
             
             if (error) {
-                alert('خطأ في إضافة المنشور: ' + error.message);
+                showAlert(addPostAlert, 'error', 'خطأ في إضافة المنشور: ' + error.message);
             } else {
-                alert('تم إضافة المنشور بنجاح!');
-                addPostModal.style.display = 'none';
-                addPostForm.reset();
-                loadPosts();
+                showAlert(addPostAlert, 'success', 'تم إضافة المنشور بنجاح!');
+                setTimeout(() => {
+                    addPostModal.style.display = 'none';
+                    addPostForm.reset();
+                    loadPosts();
+                }, 1500);
             }
+            
+            // إعادة تعيين زر الإرسال
+            submitBtn.innerHTML = '<i class="fas fa-plus"></i> نشر المنتج';
+            submitBtn.disabled = false;
         });
         
         // تحميل المنشورات
         async function loadPosts() {
+            postsContainer.innerHTML = `
+                <div class="loading">
+                    <i class="fas fa-spinner"></i>
+                    <p>جاري تحميل المنتجات...</p>
+                </div>
+            `;
+            
             const { data, error } = await supabase
                 .from('posts')
                 .select('*')
@@ -740,13 +866,19 @@
             
             if (error) {
                 console.error('Error loading posts:', error);
+                postsContainer.innerHTML = `
+                    <div style="text-align: center; width: 100%; padding: 2rem; color: #e74c3c;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                        <p>حدث خطأ في تحميل المنتجات</p>
+                    </div>
+                `;
                 return;
             }
             
             postsContainer.innerHTML = '';
             
             if (data.length === 0) {
-                postsContainer.innerHTML = '<p style="text-align: center; width: 100%;">لا توجد منشورات بعد</p>';
+                postsContainer.innerHTML = '<p style="text-align: center; width: 100%; padding: 2rem;">لا توجد منشورات بعد</p>';
                 return;
             }
             
@@ -755,7 +887,7 @@
                 postElement.className = 'post-card';
                 postElement.innerHTML = `
                     <div class="post-image">
-                        <img src="${post.image_url}" alt="${post.title}">
+                        <img src="${post.image_url || 'https://via.placeholder.com/300x200?text=لا+توجد+صورة'}" alt="${post.title}">
                     </div>
                     <div class="post-content">
                         <h3 class="post-title">${post.title}</h3>
@@ -776,19 +908,19 @@
         
         // تحديث واجهة المستخدم بناءً على حالة تسجيل الدخول
         function updateUI() {
-            const authButtons = document.querySelector('.auth-buttons');
-            
             if (currentUser) {
                 authButtons.innerHTML = `
+                    <span class="user-welcome">مرحباً، ${currentUser.user_metadata.name}</span>
                     <button class="btn btn-outline" id="logout-btn"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
-                    <span style="color: white; margin-right: 10px;">مرحباً، ${currentUser.user_metadata.name}</span>
                 `;
                 
-                document.getElementById('logout-btn').addEventListener('click', () => {
-                    supabase.auth.signOut();
-                    currentUser = null;
-                    updateUI();
-                    alert('تم تسجيل الخروج بنجاح');
+                document.getElementById('logout-btn').addEventListener('click', async () => {
+                    const { error } = await supabase.auth.signOut();
+                    if (!error) {
+                        currentUser = null;
+                        updateUI();
+                        loadPosts();
+                    }
                 });
             } else {
                 authButtons.innerHTML = `
@@ -799,6 +931,21 @@
                 document.getElementById('login-btn').addEventListener('click', () => loginModal.style.display = 'flex');
                 document.getElementById('signup-btn').addEventListener('click', () => signupModal.style.display = 'flex');
             }
+        }
+        
+        // عرض رسائل التنبيه
+        function showAlert(container, type, message) {
+            container.innerHTML = `
+                <div class="alert alert-${type}">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                    ${message}
+                </div>
+            `;
+            
+            // إخفاء التنبيه بعد 5 ثواني
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
         }
         
         // التحقق من حالة المصادقة عند تحميل الصفحة
