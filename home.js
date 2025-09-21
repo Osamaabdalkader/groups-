@@ -24,9 +24,16 @@ async function loadPosts() {
 // عرض المنشورات في واجهة المستخدم
 function displayPosts(posts) {
     const postsContainer = document.getElementById('posts-container')
+    
+    // إخفاء رسالة التحميل
+    const loadingElement = document.querySelector('.posts-loading')
+    if (loadingElement) {
+        loadingElement.style.display = 'none'
+    }
+    
     postsContainer.innerHTML = ''
 
-    if (posts.length === 0) {
+    if (!posts || posts.length === 0) {
         postsContainer.innerHTML = '<div class="no-posts">لا توجد منشورات بعد</div>'
         return
     }
@@ -66,8 +73,21 @@ function createPostElement(post) {
 
 // تنسيق التاريخ
 function formatDate(dateString) {
-    const options = { year: 'numeric', month: 'long', day: 'numeric' }
-    return new Date(dateString).toLocaleDateString('ar-EG', options)
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffTime = Math.abs(now - date)
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+    
+    if (diffDays === 0) {
+        return 'اليوم'
+    } else if (diffDays === 1) {
+        return 'أمس'
+    } else if (diffDays < 7) {
+        return `قبل ${diffDays} أيام`
+    } else {
+        const options = { year: 'numeric', month: 'long', day: 'numeric' }
+        return date.toLocaleDateString('ar-EG', options)
+    }
 }
 
 // التحقق من حالة المصادقة وإضافة معالجات الأحداث
@@ -76,7 +96,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadPosts()
     
     // التحقق من حالة تسجيل الدخول
-    const { data: { session } } = await checkAuthState()
+    const { session } = await checkAuthState()
     const isLoggedIn = !!session
     
     // إضافة معالجات الأحداث للأيقونات المحمية
@@ -97,6 +117,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     e.preventDefault()
                     window.location.href = 'login.html'
                 } else {
+                    e.preventDefault()
                     alert('هذه الصفحة قيد التطوير')
                 }
             })
