@@ -3,16 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>موقع المنشورات</title>
+    <title>منصة تسريع الإلكترونية</title>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary-color: #4361ee;
-            --secondary-color: #3a0ca3;
+            --primary-color: #2c3e50;
+            --secondary-color: #1a73e8;
+            --accent-color: #0f9d58;
             --light-color: #f8f9fa;
-            --dark-color: #212529;
-            --success-color: #4cc9f0;
-            --error-color: #e63946;
+            --dark-color: #343a40;
+            --success-color: #28a745;
+            --error-color: #dc3545;
+            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --hover-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
         }
         
         * {
@@ -24,7 +28,7 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
-            background-color: #f4f4f4;
+            background-color: #f5f7f9;
             color: #333;
         }
         
@@ -35,10 +39,10 @@
         }
         
         header {
-            background-color: var(--primary-color);
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
             padding: 1rem 0;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
         
         nav {
@@ -48,8 +52,15 @@
         }
         
         .logo {
-            font-size: 1.5rem;
+            font-size: 1.8rem;
             font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo i {
+            margin-left: 10px;
+            color: var(--accent-color);
         }
         
         .nav-links {
@@ -58,17 +69,23 @@
         }
         
         .nav-links li {
-            margin-left: 1.5rem;
+            margin-left: 1.8rem;
         }
         
         .nav-links a {
             color: white;
             text-decoration: none;
             transition: opacity 0.3s;
+            display: flex;
+            align-items: center;
+        }
+        
+        .nav-links a i {
+            margin-left: 8px;
         }
         
         .nav-links a:hover {
-            opacity: 0.8;
+            opacity: 0.9;
         }
         
         .page {
@@ -80,23 +97,48 @@
             display: block;
         }
         
+        .section-title {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            color: var(--primary-color);
+            text-align: center;
+            position: relative;
+            padding-bottom: 15px;
+        }
+        
+        .section-title:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: var(--accent-color);
+            border-radius: 2px;
+        }
+        
         .posts-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
             margin-top: 20px;
         }
         
         .post-card {
             background: white;
-            border-radius: 8px;
+            border-radius: 12px;
             padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            transition: transform 0.3s;
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s ease;
+            border-top: 5px solid var(--secondary-color);
+            position: relative;
+            overflow: hidden;
         }
         
         .post-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-8px);
+            box-shadow: var(--hover-shadow);
         }
         
         .post-image {
@@ -108,52 +150,84 @@
         }
         
         .post-title {
-            font-size: 1.2rem;
-            margin-bottom: 10px;
-            color: var(--secondary-color);
+            font-size: 1.3rem;
+            margin-bottom: 12px;
+            color: var(--primary-color);
+            font-weight: 600;
         }
         
         .post-description {
             color: #666;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            line-height: 1.5;
         }
         
         .post-details {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
-            margin-top: 15px;
+            margin: 15px 0;
         }
         
         .post-detail {
-            background-color: #f0f0f0;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 0.9rem;
+            background-color: #f0f5ff;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            color: var(--secondary-color);
+        }
+        
+        .post-detail i {
+            margin-left: 5px;
         }
         
         .post-price {
             background-color: #e8f5e9;
-            color: #2e7d32;
+            color: var(--success-color);
             font-weight: bold;
         }
         
+        .post-author {
+            display: flex;
+            align-items: center;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .post-author i {
+            margin-left: 8px;
+            color: var(--secondary-color);
+        }
+        
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
         
         label {
             display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--primary-color);
         }
         
         input, textarea, select {
             width: 100%;
-            padding: 10px;
+            padding: 12px 15px;
             border: 1px solid #ddd;
-            border-radius: 4px;
+            border-radius: 6px;
             font-family: inherit;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            border-color: var(--secondary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.2);
         }
         
         textarea {
@@ -162,49 +236,73 @@
         }
         
         button {
-            background-color: var(--primary-color);
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
+            padding: 12px 25px;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 1rem;
-            transition: background-color 0.3s;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        button i {
+            margin-left: 8px;
         }
         
         button:hover {
-            background-color: var(--secondary-color);
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         
         .btn-secondary {
-            background-color: #6c757d;
+            background: #6c757d;
         }
         
         .btn-secondary:hover {
-            background-color: #5a6268;
+            background: #5a6268;
         }
         
         footer {
             background-color: var(--dark-color);
             color: white;
             text-align: center;
-            padding: 1rem 0;
-            margin-top: 2rem;
+            padding: 2rem 0;
+            margin-top: 3rem;
+        }
+        
+        .footer-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .footer-logo {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
         }
         
         .no-image {
-            background-color: #f0f0f0;
+            background: linear-gradient(135deg, #f0f0f0, #e0e0e0);
             display: flex;
             align-items: center;
             justify-content: center;
             color: #888;
             font-style: italic;
+            border-radius: 8px;
         }
         
         .upload-status {
-            margin-top: 10px;
-            padding: 10px;
-            border-radius: 4px;
+            margin-top: 15px;
+            padding: 12px 15px;
+            border-radius: 6px;
             display: none;
         }
         
@@ -212,18 +310,20 @@
             background-color: #d4edda;
             color: #155724;
             display: block;
+            border-left: 4px solid var(--success-color);
         }
         
         .error {
             background-color: #f8d7da;
             color: #721c24;
             display: block;
+            border-left: 4px solid var(--error-color);
         }
         
         .debug-info {
             background-color: #eee;
-            padding: 10px;
-            border-radius: 4px;
+            padding: 15px;
+            border-radius: 6px;
             margin-top: 20px;
             font-family: monospace;
             font-size: 12px;
@@ -234,35 +334,62 @@
             max-width: 500px;
             margin: 0 auto;
             background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
         }
         
         .profile-card {
             background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
             max-width: 600px;
             margin: 0 auto;
         }
         
         .profile-info {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
         }
         
         .profile-label {
             font-weight: bold;
             margin-bottom: 5px;
+            color: var(--primary-color);
+            min-width: 120px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .profile-label i {
+            margin-left: 10px;
+            color: var(--secondary-color);
         }
         
         .login-required {
             text-align: center;
             padding: 40px 0;
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+        }
+        
+        .form-icon {
+            position: relative;
+        }
+        
+        .form-icon i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+        
+        .form-icon input, .form-icon select, .form-icon textarea {
+            padding-right: 45px;
         }
         
         @media (max-width: 768px) {
@@ -272,10 +399,15 @@
             
             .nav-links {
                 flex-direction: column;
+                gap: 10px;
             }
             
             .nav-links li {
                 margin: 0.5rem 0;
+            }
+            
+            .section-title {
+                font-size: 1.6rem;
             }
         }
     </style>
@@ -284,15 +416,17 @@
     <header>
         <div class="container">
             <nav>
-                <div class="logo">موقع المنشورات</div>
+                <div class="logo">
+                    <i class="fas fa-bolt"></i>
+                    منصة تسريع الإلكترونية
+                </div>
                 <ul class="nav-links">
-                    <li><a href="#" onclick="showPage('home')">الرئيسية</a></li>
-                    <li id="publish-link" style="display: none;"><a href="#" onclick="showPage('publish')">نشر منشور</a></li>
-                    <li id="profile-link" style="display: none;"><a href="#" onclick="showPage('profile')">حسابي</a></li>
-                    <li id="login-link"><a href="#" onclick="showPage('login')">تسجيل الدخول</a></li>
-                    <li id="register-link"><a href="#" onclick="showPage('register')">إنشاء حساب</a></li>
-                    <li id="logout-link" style="display: none;"><a href="#" onclick="logout()">تسجيل الخروج</a></li>
-                    <li><a href="#" onclick="toggleDebug()">تصحيح الأخطاء</a></li>
+                    <li><a href="#" onclick="showPage('home')"><i class="fas fa-home"></i> الرئيسية</a></li>
+                    <li id="publish-link" style="display: none;"><a href="#" onclick="showPage('publish')"><i class="fas fa-plus-circle"></i> نشر منشور</a></li>
+                    <li id="profile-link" style="display: none;"><a href="#" onclick="showPage('profile')"><i class="fas fa-user"></i> حسابي</a></li>
+                    <li id="login-link"><a href="#" onclick="showPage('login')"><i class="fas fa-sign-in-alt"></i> تسجيل الدخول</a></li>
+                    <li id="register-link"><a href="#" onclick="showPage('register')"><i class="fas fa-user-plus"></i> إنشاء حساب</a></li>
+                    <li id="logout-link" style="display: none;"><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</a></li>
                 </ul>
             </nav>
         </div>
@@ -301,7 +435,7 @@
     <main class="container">
         <!-- الصفحة الرئيسية -->
         <section id="home-page" class="page active">
-            <h1>المنشورات الأخيرة</h1>
+            <h1 class="section-title">المنشورات الأخيرة</h1>
             <div id="posts-container" class="posts-grid">
                 <!-- سيتم ملء المنشورات هنا بواسطة JavaScript -->
             </div>
@@ -309,20 +443,20 @@
 
         <!-- صفحة النشر -->
         <section id="publish-page" class="page">
+            <h1 class="section-title">نشر منشور جديد</h1>
             <div id="publish-content">
-                <h1>نشر منشور جديد</h1>
                 <div id="upload-status" class="upload-status"></div>
                 <form id="publish-form">
-                    <div class="form-group">
-                        <label for="name">الاسم:</label>
+                    <div class="form-group form-icon">
+                        <label for="name"><i class="fas fa-heading"></i> اسم المنشور:</label>
                         <input type="text" id="name" required>
                     </div>
-                    <div class="form-group">
-                        <label for="description">الوصف:</label>
+                    <div class="form-group form-icon">
+                        <label for="description"><i class="fas fa-align-left"></i> الوصف:</label>
                         <textarea id="description" required></textarea>
                     </div>
-                    <div class="form-group">
-                        <label for="location">الموقع:</label>
+                    <div class="form-group form-icon">
+                        <label for="location"><i class="fas fa-map-marker-alt"></i> الموقع:</label>
                         <select id="location" required>
                             <option value="">اختر الموقع</option>
                             <option value="صنعاء">صنعاء</option>
@@ -340,8 +474,8 @@
                             <option value="أخرى">أخرى</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label for="category">النوع:</label>
+                    <div class="form-group form-icon">
+                        <label for="category"><i class="fas fa-tag"></i> النوع:</label>
                         <select id="category" required>
                             <option value="">اختر النوع</option>
                             <option value="أدوية">أدوية</option>
@@ -355,24 +489,24 @@
                             <option value="أخرى">أخرى</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label for="price">السعر (ريال يمني):</label>
+                    <div class="form-group form-icon">
+                        <label for="price"><i class="fas fa-money-bill-wave"></i> السعر (ريال يمني):</label>
                         <input type="number" id="price" min="0" required>
                     </div>
                     <div class="form-group">
-                        <label for="image">صورة (اختياري):</label>
+                        <label for="image"><i class="fas fa-image"></i> صورة (اختياري):</label>
                         <input type="file" id="image" accept="image/*">
                         <small>يمكنك رفع صورة لتعزيز منشورك (الحجم الأقصى: 5MB)</small>
                     </div>
-                    <button type="submit">نشر</button>
+                    <button type="submit"><i class="fas fa-paper-plane"></i> نشر</button>
                 </form>
             </div>
             
             <div id="login-required-publish" class="login-required" style="display: none;">
                 <h2>يجب تسجيل الدخول لنشر منشور</h2>
                 <p>يجب أن تكون مسجلاً في الموقع لنشر منشور جديد.</p>
-                <button onclick="showPage('login')">تسجيل الدخول</button>
-                <button onclick="showPage('register')" class="btn-secondary">إنشاء حساب</button>
+                <button onclick="showPage('login')"><i class="fas fa-sign-in-alt"></i> تسجيل الدخول</button>
+                <button onclick="showPage('register')" class="btn-secondary"><i class="fas fa-user-plus"></i> إنشاء حساب</button>
             </div>
             
             <div id="debug-info" class="debug-info"></div>
@@ -381,18 +515,18 @@
         <!-- صفحة تسجيل الدخول -->
         <section id="login-page" class="page">
             <div class="auth-form">
-                <h1>تسجيل الدخول</h1>
+                <h1 class="section-title">تسجيل الدخول</h1>
                 <div id="login-status" class="upload-status"></div>
                 <form id="login-form">
-                    <div class="form-group">
-                        <label for="email">البريد الإلكتروني:</label>
+                    <div class="form-group form-icon">
+                        <label for="email"><i class="fas fa-envelope"></i> البريد الإلكتروني:</label>
                         <input type="email" id="login-email" required>
                     </div>
-                    <div class="form-group">
-                        <label for="password">كلمة المرور:</label>
+                    <div class="form-group form-icon">
+                        <label for="password"><i class="fas fa-lock"></i> كلمة المرور:</label>
                         <input type="password" id="login-password" required>
                     </div>
-                    <button type="submit">تسجيل الدخول</button>
+                    <button type="submit"><i class="fas fa-sign-in-alt"></i> تسجيل الدخول</button>
                 </form>
                 <p style="margin-top: 20px; text-align: center;">
                     لا تملك حساباً؟ <a href="#" onclick="showPage('register')">إنشاء حساب جديد</a>
@@ -403,34 +537,34 @@
         <!-- صفحة إنشاء حساب -->
         <section id="register-page" class="page">
             <div class="auth-form">
-                <h1>إنشاء حساب جديد</h1>
+                <h1 class="section-title">إنشاء حساب جديد</h1>
                 <div id="register-status" class="upload-status"></div>
                 <form id="register-form">
-                    <div class="form-group">
-                        <label for="name">الاسم:</label>
+                    <div class="form-group form-icon">
+                        <label for="name"><i class="fas fa-user"></i> الاسم:</label>
                         <input type="text" id="register-name" required>
                     </div>
-                    <div class="form-group">
-                        <label for="phone">رقم الهاتف:</label>
+                    <div class="form-group form-icon">
+                        <label for="phone"><i class="fas fa-phone"></i> رقم الهاتف:</label>
                         <input type="tel" id="register-phone" required>
                     </div>
-                    <div class="form-group">
-                        <label for="address">العنوان:</label>
+                    <div class="form-group form-icon">
+                        <label for="address"><i class="fas fa-map-marker-alt"></i> العنوان:</label>
                         <input type="text" id="register-address" required>
                     </div>
-                    <div class="form-group">
-                        <label for="email">البريد الإلكتروني:</label>
+                    <div class="form-group form-icon">
+                        <label for="email"><i class="fas fa-envelope"></i> البريد الإلكتروني:</label>
                         <input type="email" id="register-email" required>
                     </div>
-                    <div class="form-group">
-                        <label for="password">كلمة المرور:</label>
+                    <div class="form-group form-icon">
+                        <label for="password"><i class="fas fa-lock"></i> كلمة المرور:</label>
                         <input type="password" id="register-password" required>
                     </div>
-                    <div class="form-group">
-                        <label for="confirm-password">تأكيد كلمة المرور:</label>
+                    <div class="form-group form-icon">
+                        <label for="confirm-password"><i class="fas fa-lock"></i> تأكيد كلمة المرور:</label>
                         <input type="password" id="register-confirm-password" required>
                     </div>
-                    <button type="submit">إنشاء حساب</button>
+                    <button type="submit"><i class="fas fa-user-plus"></i> إنشاء حساب</button>
                 </form>
                 <p style="margin-top: 20px; text-align: center;">
                     لديك حساب بالفعل؟ <a href="#" onclick="showPage('login')">تسجيل الدخول</a>
@@ -440,27 +574,27 @@
 
         <!-- صفحة حسابي -->
         <section id="profile-page" class="page">
+            <h1 class="section-title">حسابي</h1>
             <div id="profile-content">
-                <h1>حسابي</h1>
                 <div class="profile-card">
                     <div class="profile-info">
-                        <div class="profile-label">الاسم:</div>
+                        <div class="profile-label"><i class="fas fa-user"></i> الاسم:</div>
                         <div id="profile-name"></div>
                     </div>
                     <div class="profile-info">
-                        <div class="profile-label">البريد الإلكتروني:</div>
+                        <div class="profile-label"><i class="fas fa-envelope"></i> البريد الإلكتروني:</div>
                         <div id="profile-email"></div>
                     </div>
                     <div class="profile-info">
-                        <div class="profile-label">رقم الهاتف:</div>
+                        <div class="profile-label"><i class="fas fa-phone"></i> رقم الهاتف:</div>
                         <div id="profile-phone"></div>
                     </div>
                     <div class="profile-info">
-                        <div class="profile-label">العنوان:</div>
+                        <div class="profile-label"><i class="fas fa-map-marker-alt"></i> العنوان:</div>
                         <div id="profile-address"></div>
                     </div>
                     <div class="profile-info">
-                        <div class="profile-label">تاريخ إنشاء الحساب:</div>
+                        <div class="profile-label"><i class="fas fa-calendar-alt"></i> تاريخ إنشاء الحساب:</div>
                         <div id="profile-created"></div>
                     </div>
                 </div>
@@ -469,22 +603,28 @@
             <div id="login-required-profile" class="login-required" style="display: none;">
                 <h2>يجب تسجيل الدخول لعرض الملف الشخصي</h2>
                 <p>يجب أن تكون مسجلاً في الموقع لعرض معلومات حسابك.</p>
-                <button onclick="showPage('login')">تسجيل الدخول</button>
-                <button onclick="showPage('register')" class="btn-secondary">إنشاء حساب</button>
+                <button onclick="showPage('login')"><i class="fas fa-sign-in-alt"></i> تسجيل الدخول</button>
+                <button onclick="showPage('register')" class="btn-secondary"><i class="fas fa-user-plus"></i> إنشاء حساب</button>
             </div>
         </section>
     </main>
 
     <footer>
         <div class="container">
-            <p>© 2023 موقع المنشورات البسيط. جميع الحقوق محفوظة.</p>
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <i class="fas fa-bolt"></i>
+                    منصة تسريع الإلكترونية
+                </div>
+                <p>© 2023 منصة تسريع الإلكترونية. جميع الحقوق محفوظة.</p>
+            </div>
         </div>
     </footer>
 
     <script>
         // تهيئة Supabase
         const SUPABASE_URL = 'https://rrjocpzsyxefcsztazkd.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyam9jcHpzeXhlZmNzenRhemtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyOTEzMTgsImV4cCI6MjA3Mzg2NzMxOH0.TvUthkBc_lnDdGlHJdEFUPo4Dl2n2oHyokXZE8_wodw';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyam9jcHpzeXhlZmNzenRhemtkIiwicm9sZaI6ImFub24iLCJpYXQiOjE3NTgyOTEzMTgsImV4cCI6MjA3Mzg2NzMxOH0.TvUthkBc_lnDdGlHJdEFUPo4Dl2n2oHyokXZE8_wodw';
         
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         let debugMode = false;
@@ -836,9 +976,13 @@
                     <h3 class="post-title">${post.name}</h3>
                     <p class="post-description">${post.description}</p>
                     <div class="post-details">
-                        <span class="post-detail post-price">${formattedPrice}</span>
-                        <span class="post-detail">${post.category}</span>
-                        <span class="post-detail">${post.location}</span>
+                        <span class="post-detail post-price"><i class="fas fa-money-bill-wave"></i> ${formattedPrice}</span>
+                        <span class="post-detail"><i class="fas fa-tag"></i> ${post.category}</span>
+                        <span class="post-detail"><i class="fas fa-map-marker-alt"></i> ${post.location}</span>
+                    </div>
+                    <div class="post-author">
+                        <i class="fas fa-user"></i> 
+                        ${post.user_id ? `تم النشر بواسطة: ${post.user_id}` : 'مستخدم غير معروف'}
                     </div>
                     <small>${new Date(post.created_at).toLocaleString('ar-SA')}</small>
                 `;
@@ -895,7 +1039,8 @@
                         location,
                         category,
                         price,
-                        image_url: imageUrl 
+                        image_url: imageUrl,
+                        user_id: currentUser.email // استخدام البريد الإلكتروني كمعرف للمستخدم
                     }]);
                 
                 if (error) {
@@ -921,4 +1066,4 @@
         }
     </script>
 </body>
-            </html>
+                                                                     </html>
