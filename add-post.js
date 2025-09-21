@@ -4,7 +4,7 @@ import { getCurrentUser } from './auth.js'
 
 document.addEventListener('DOMContentLoaded', async () => {
     // التحقق من تسجيل الدخول
-    const { data: { user } } = await getCurrentUser()
+    const { user, error: userError } = await getCurrentUser()
     if (!user) {
         window.location.href = 'login.html'
         return
@@ -65,33 +65,46 @@ document.addEventListener('DOMContentLoaded', async () => {
         const phone = document.getElementById('post-phone').value
         const imageFile = postImageInput.files[0]
         
+        // التحقق من الحقول المطلوبة
+        if (!title || !description || !category || !location || !phone) {
+            alert('يرجى ملء جميع الحقول المطلوبة')
+            return
+        }
+        
         // عرض نافذة التحميل
         loadingOverlay.classList.remove('hidden')
+        uploadProgress.style.width = '0%'
         
         let imageUrl = null
         
         try {
             // رفع الصورة إذا وجدت
             if (imageFile) {
+                uploadProgress.style.width = '30%'
+                
                 const fileExt = imageFile.name.split('.').pop()
                 const fileName = `${Math.random()}.${fileExt}`
                 const filePath = `post_images/${fileName}`
                 
                 const { error: uploadError } = await supabase.storage
-                    .from('post_images')
+                    .from('marketing') // استخدام الدلو marketing
                     .upload(filePath, imageFile)
                 
                 if (uploadError) {
                     throw uploadError
                 }
                 
+                uploadProgress.style.width = '60%'
+                
                 // الحصول على رابط الصورة
                 const { data: { publicUrl } } = supabase.storage
-                    .from('post_images')
+                    .from('marketing')
                     .getPublicUrl(filePath)
                 
                 imageUrl = publicUrl
             }
+            
+            uploadProgress.style.width = '80%'
             
             // إدراج المنشور في قاعدة البيانات
             const { data: post, error } = await supabase
@@ -101,12 +114,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                         title,
                         description,
                         category,
-                        price,
+                        price: price || null,
                         location,
                         phone,
                         image_url: imageUrl,
                         user_id: user.id,
-                        user_name: user.user_metadata.name || 'مستخدم'
+                        user_name: user.user_metadata?.name || 'مستخدم'
                     }
                 ])
                 .select()
@@ -115,10 +128,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 throw error
             }
             
+            uploadProgress.style.width = '100%'
+            
             // إخفاء نافذة التحميل وإظهار رسالة النجاح
-            loadingOverlay.classList.add('hidden')
-            alert('تم نشر المنشور بنجاح!')
-            window.location.href = 'index.html'
+            setTimeout(() => {
+                loadingOverlay.classList.add('hidden')
+                alert('تم نشر المنشور بنجاح!')
+                window.location.href = 'index.html'
+            }, 1000)
             
         } catch (error) {
             loadingOverlay.classList.add('hidden')
