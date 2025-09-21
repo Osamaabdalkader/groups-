@@ -392,6 +392,26 @@
             padding-right: 45px;
         }
         
+        .connection-status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            text-align: center;
+            display: none;
+        }
+        
+        .connection-success {
+            background-color: #d4edda;
+            color: #155724;
+            display: block;
+        }
+        
+        .connection-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+        
         @media (max-width: 768px) {
             .posts-grid {
                 grid-template-columns: 1fr;
@@ -427,12 +447,15 @@
                     <li id="login-link"><a href="#" onclick="showPage('login')"><i class="fas fa-sign-in-alt"></i> تسجيل الدخول</a></li>
                     <li id="register-link"><a href="#" onclick="showPage('register')"><i class="fas fa-user-plus"></i> إنشاء حساب</a></li>
                     <li id="logout-link" style="display: none;"><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</a></li>
+                    <li><a href="#" onclick="toggleDebug()"><i class="fas fa-bug"></i> تصحيح الأخطاء</a></li>
                 </ul>
             </nav>
         </div>
     </header>
 
     <main class="container">
+        <div id="connection-status" class="connection-status"></div>
+        
         <!-- الصفحة الرئيسية -->
         <section id="home-page" class="page active">
             <h1 class="section-title">المنشورات الأخيرة</h1>
@@ -624,11 +647,43 @@
     <script>
         // تهيئة Supabase
         const SUPABASE_URL = 'https://rrjocpzsyxefcsztazkd.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyam9jcHpzeXhlZmNzenRhemtkIiwicm9sZaI6ImFub24iLCJpYXQiOjE3NTgyOTEzMTgsImV4cCI6MjA3Mzg2NzMxOH0.TvUthkBc_lnDdGlHJdEFUPo4Dl2n2oHyokXZE8_wodw';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyam9jcHpzeXhlZmNzenRhemtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyOTEzMTgsImV4cCI6MjA3Mzg2NzMxOH0.TvUthkBc_lnDdGlHJdEFUPo4Dl2n2oHyokXZE8_wodw';
         
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         let debugMode = false;
         let currentUser = null;
+        
+        // اختبار اتصال Supabase
+        async function testConnection() {
+            const connectionStatus = document.getElementById('connection-status');
+            try {
+                const { data, error } = await supabase.from('marketing').select('count');
+                
+                if (error) {
+                    console.error('اتصال Supabase فشل:', error);
+                    connectionStatus.textContent = `خطأ في الاتصال: ${error.message}`;
+                    connectionStatus.className = 'connection-status connection-error';
+                    
+                    if (debugMode) {
+                        const debugEl = document.getElementById('debug-info');
+                        debugEl.innerHTML += `<p>خطأ الاتصال: ${error.message}</p>`;
+                    }
+                } else {
+                    console.log('اتصال Supabase ناجح');
+                    connectionStatus.textContent = 'الاتصال مع قاعدة البيانات ناجح';
+                    connectionStatus.className = 'connection-status connection-success';
+                    
+                    // إخفاء رسالة النجاح بعد 3 ثوان
+                    setTimeout(() => {
+                        connectionStatus.style.display = 'none';
+                    }, 3000);
+                }
+            } catch (error) {
+                console.error('خطأ في اختبار الاتصال:', error);
+                connectionStatus.textContent = `خطأ في الاتصال: ${error.message}`;
+                connectionStatus.className = 'connection-status connection-error';
+            }
+        }
         
         // وظائف التنقل بين الصفحات
         function showPage(pageId) {
@@ -683,6 +738,7 @@
                 <p>Supabase Key: ${SUPABASE_KEY.substring(0, 20)}...</p>
                 <p>تم تحميل الصفحة: ${new Date().toLocaleString('ar-SA')}</p>
                 <p>حالة المستخدم: ${currentUser ? 'مسجل الدخول' : 'غير مسجل'}</p>
+                <p>معلومات المتصفح: ${navigator.userAgent}</p>
             `;
         }
         
@@ -725,6 +781,7 @@
                 showPage('home');
             } catch (error) {
                 console.error('Error signing out:', error.message);
+                alert(`خطأ في تسجيل الخروج: ${error.message}`);
             }
         }
         
@@ -740,6 +797,8 @@
                 }
             } catch (error) {
                 console.error('Error checking auth:', error.message);
+                document.getElementById('connection-status').textContent = `خطأ في المصادقة: ${error.message}`;
+                document.getElementById('connection-status').className = 'connection-status connection-error';
             }
         }
         
@@ -748,6 +807,12 @@
             if (event === 'SIGNED_IN' && session?.user) {
                 currentUser = session.user;
                 updateUIForAuth();
+                document.getElementById('connection-status').textContent = 'تم تسجيل الدخول بنجاح';
+                document.getElementById('connection-status').className = 'connection-status connection-success';
+                
+                setTimeout(() => {
+                    document.getElementById('connection-status').style.display = 'none';
+                }, 3000);
             } else if (event === 'SIGNED_OUT') {
                 currentUser = null;
                 updateUIForAuth();
@@ -756,7 +821,13 @@
         
         // تحميل المنشورات عند فتح الصفحة
         document.addEventListener('DOMContentLoaded', async () => {
+            // اختبار الاتصال أولاً
+            await testConnection();
+            
+            // ثم التحقق من المصادقة
             await checkAuth();
+            
+            // ثم تحميل المنشورات
             loadPosts();
             
             // إعداد نموذج النشر
@@ -932,6 +1003,9 @@
                 
                 if (error) {
                     console.error('Error loading posts:', error);
+                    document.getElementById('connection-status').textContent = `خطأ في تحميل المنشورات: ${error.message}`;
+                    document.getElementById('connection-status').className = 'connection-status connection-error';
+                    
                     if (debugMode) {
                         const debugEl = document.getElementById('debug-info');
                         debugEl.innerHTML += `<p>خطأ في تحميل المنشورات: ${error.message}</p>`;
@@ -942,6 +1016,9 @@
                 displayPosts(posts);
             } catch (error) {
                 console.error('Error:', error);
+                document.getElementById('connection-status').textContent = `خطأ في تحميل المنشورات: ${error.message}`;
+                document.getElementById('connection-status').className = 'connection-status connection-error';
+                
                 if (debugMode) {
                     const debugEl = document.getElementById('debug-info');
                     debugEl.innerHTML += `<p>خطأ في تحميل المنشورات: ${error.message}</p>`;
@@ -954,7 +1031,7 @@
             const postsContainer = document.getElementById('posts-container');
             postsContainer.innerHTML = '';
             
-            if (posts.length === 0) {
+            if (!posts || posts.length === 0) {
                 postsContainer.innerHTML = '<p>لا توجد منشورات بعد.</p>';
                 return;
             }
@@ -1066,4 +1143,4 @@
         }
     </script>
 </body>
-                                                                     </html>
+    </html>
